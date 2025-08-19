@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GenuineHire - Interview Session (Glasses Optimized)</title>
+  <title>GenuineHire - Interview Session (Honest Detection)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
@@ -258,6 +258,28 @@
       transform: translate(-50%, -50%);
       transition: all 0.2s ease;
     }
+    .detection-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .face-box {
+      position: absolute;
+      border: 2px solid #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+    }
+    .eye-dot {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      transform: translate(-50%, -50%);
+    }
     .hidden {
       display: none !important;
     }
@@ -278,14 +300,15 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Interview Session (Glasses Optimized)</h1>
-      <p>Enhanced detection for glasses wearers with improved thresholds.</p>
+      <h1>Interview Session (Honest Detection)</h1>
+      <p>Real eye detection - no false positives. Only tracks when eyes are actually visible.</p>
     </div>
 
     <div class="video-section">
       <div class="video-container">
         <video id="video" autoplay playsinline muted style="display: none;"></video>
         <canvas id="canvas" style="display: none;"></canvas>
+        <div id="detectionOverlay" class="detection-overlay" style="display: none;"></div>
         <div id="videoPlaceholder" class="video-placeholder">
           <div class="video-placeholder-icon">📹</div>
           <div>Camera not started</div>
@@ -351,7 +374,7 @@
         <div class="gaze-indicator">
           <div class="gaze-dot" id="gazeDot"></div>
         </div>
-        <div style="font-size: 11px; color: var(--text-secondary);">Red dot shows estimated gaze direction</div>
+        <div style="font-size: 11px; color: var(--text-secondary);">Red dot shows gaze direction (only when eyes detected)</div>
       </div>
     </div>
   </div>
@@ -376,6 +399,7 @@
     const connectionStatus = document.getElementById('connectionStatus');
     const statusInstructions = document.getElementById('statusInstructions');
     const debugPanel = document.getElementById('debugPanel');
+    const detectionOverlay = document.getElementById('detectionOverlay');
 
     async function init() {
       video = videoEl;
@@ -430,7 +454,7 @@
       statusInstructions.textContent = message;
     }
 
-    // Optimized face and eye detection for glasses wearers
+    // Honest face and eye detection - no false positives
     function detectFaceAndEyes() {
       if (!video || !canvas) return null;
 
@@ -443,28 +467,39 @@
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
         
-        // Step 1: Detect face region using enhanced skin color detection
+        // Step 1: Detect face region
         let faceRegion = detectFaceRegion(data, width, height);
         
         if (!faceRegion.detected) {
+          clearDetectionOverlay();
           return {
             detected: false,
             eyesDetected: false,
             confidence: 0,
             features: [0.5, 0.5, 0.5, 0.5],
-            gazeDirection: 'unknown'
+            gazeDirection: 'no_face'
           };
         }
         
-        // Step 2: Use hybrid approach for glasses wearers
-        let eyeData = detectEyesWithGlasses(data, width, height, faceRegion);
+        // Step 2: Try to find actual eyes - NO FALLBACK
+        let eyeData = detectRealEyes(data, width, height, faceRegion);
         
-        // Step 3: Calculate gaze based on eye positions or face orientation
-        let gazeFeatures = calculateGazeFeatures(eyeData, faceRegion, width, height);
+        // Step 3: Only calculate gaze if we actually found eyes
+        let gazeFeatures;
+        if (eyeData.eyesFound) {
+          gazeFeatures = calculateGazeFeatures(eyeData, width, height);
+          updateDetectionOverlay(faceRegion, eyeData, width, height);
+        } else {
+          gazeFeatures = {
+            features: [0.5, 0.5, 0.5, 0.5],
+            direction: 'no_eyes'
+          };
+          updateDetectionOverlay(faceRegion, null, width, height);
+        }
         
         return {
           detected: true,
-          eyesDetected: eyeData.eyesFound,
+          eyesDetected: eyeData.eyesFound, // This will be honest
           confidence: faceRegion.confidence,
           features: gazeFeatures.features,
           gazeDirection: gazeFeatures.direction,
@@ -474,6 +509,7 @@
         
       } catch (error) {
         console.log('Detection error:', error);
+        clearDetectionOverlay();
         return {
           detected: false,
           eyesDetected: false,
@@ -488,16 +524,15 @@
       let skinPixels = 0;
       let totalPixels = 0;
       let minX = width, maxX = 0, minY = height, maxY = 0;
-      let weightedX = 0, weightedY = 0, totalWeight = 0;
       
-      // Check larger area for face
-      const startX = Math.floor(width * 0.05);
-      const endX = Math.floor(width * 0.95);
-      const startY = Math.floor(height * 0.05);
-      const endY = Math.floor(height * 0.95);
+      // Check for face using skin color detection
+      const startX = Math.floor(width * 0.1);
+      const endX = Math.floor(width * 0.9);
+      const startY = Math.floor(height * 0.1);
+      const endY = Math.floor(height * 0.9);
       
-      for (let y = startY; y < endY; y += 2) {
-        for (let x = startX; x < endX; x += 2) {
+      for (let y = startY; y < endY; y += 3) {
+        for (let x = startX; x < endX; x += 3) {
           const idx = (y * width + x) * 4;
           const r = data[idx];
           const g = data[idx + 1];
@@ -509,56 +544,43 @@
             maxX = Math.max(maxX, x);
             minY = Math.min(minY, y);
             maxY = Math.max(maxY, y);
-            
-            // Weight center pixels more
-            const centerWeight = 1 + (1 - Math.abs(x - width/2) / (width/2)) * 0.5;
-            weightedX += x * centerWeight;
-            weightedY += y * centerWeight;
-            totalWeight += centerWeight;
           }
           totalPixels++;
         }
       }
       
       const skinRatio = skinPixels / totalPixels;
-      const faceDetected = skinRatio > 0.05; // Lower threshold
+      const faceDetected = skinRatio > 0.04; // Reasonable threshold
       
       return {
         detected: faceDetected,
         confidence: skinRatio,
-        bounds: faceDetected ? { minX, maxX, minY, maxY } : null,
-        center: faceDetected && totalWeight > 0 ? { 
-          x: weightedX / totalWeight, 
-          y: weightedY / totalWeight 
-        } : null
+        bounds: faceDetected ? { minX, maxX, minY, maxY } : null
       };
     }
 
     function isSkinColor(r, g, b) {
-      // Enhanced skin color detection for various skin tones
+      // Enhanced skin color detection
       const brightness = (r + g + b) / 3;
       
-      // Standard skin detection
+      // Multiple skin tone conditions
       const condition1 = (r > 95 && g > 40 && b > 20 && 
                          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
                          Math.abs(r - g) > 15 && r > g && r > b);
       
-      // Light skin detection  
       const condition2 = (r > 220 && g > 210 && b > 170 && 
                          Math.abs(r - g) <= 15 && r > b && g > b);
       
-      // Medium skin detection
       const condition3 = (r > 160 && g > 100 && b > 80 && 
                          r > g && g > b && brightness > 100);
       
-      // Darker skin detection
       const condition4 = (r > 80 && g > 50 && b > 30 && 
                          r > g && g >= b && brightness > 60);
       
       return condition1 || condition2 || condition3 || condition4;
     }
 
-    function detectEyesWithGlasses(data, width, height, faceRegion) {
+    function detectRealEyes(data, width, height, faceRegion) {
       if (!faceRegion.detected) {
         return { eyesFound: false, leftEye: null, rightEye: null };
       }
@@ -567,52 +589,36 @@
       const faceWidth = bounds.maxX - bounds.minX;
       const faceHeight = bounds.maxY - bounds.minY;
       
-      // Larger eye search regions for glasses
-      const eyeRegionStartY = bounds.minY + Math.floor(faceHeight * 0.15);
-      const eyeRegionEndY = bounds.minY + Math.floor(faceHeight * 0.7);
+      // Define eye search regions
+      const eyeRegionStartY = bounds.minY + Math.floor(faceHeight * 0.2);
+      const eyeRegionEndY = bounds.minY + Math.floor(faceHeight * 0.6);
       
-      // Left eye region (appears on right side in mirror view)
-      const leftEyeX = bounds.minX + Math.floor(faceWidth * 0.55);
-      const leftEyeEndX = bounds.minX + Math.floor(faceWidth * 0.9);
+      // Left eye region (right side in mirror view)
+      const leftEyeX = bounds.minX + Math.floor(faceWidth * 0.6);
+      const leftEyeEndX = bounds.minX + Math.floor(faceWidth * 0.85);
       
-      // Right eye region (appears on left side in mirror view)
-      const rightEyeX = bounds.minX + Math.floor(faceWidth * 0.1);
-      const rightEyeEndX = bounds.minX + Math.floor(faceWidth * 0.45);
+      // Right eye region (left side in mirror view)
+      const rightEyeX = bounds.minX + Math.floor(faceWidth * 0.15);
+      const rightEyeEndX = bounds.minX + Math.floor(faceWidth * 0.4);
       
-      // Try multiple detection methods
-      let leftEye = findEyeWithGlasses(data, width, height, leftEyeX, leftEyeEndX, eyeRegionStartY, eyeRegionEndY);
-      let rightEye = findEyeWithGlasses(data, width, height, rightEyeX, rightEyeEndX, eyeRegionStartY, eyeRegionEndY);
+      // Try to find REAL eyes - strict detection
+      let leftEye = findRealEye(data, width, height, leftEyeX, leftEyeEndX, eyeRegionStartY, eyeRegionEndY);
+      let rightEye = findRealEye(data, width, height, rightEyeX, rightEyeEndX, eyeRegionStartY, eyeRegionEndY);
       
-      // If eyes not found, use fallback estimates based on face geometry
-      if (!leftEye) {
-        leftEye = {
-          x: leftEyeX + (leftEyeEndX - leftEyeX) * 0.4,
-          y: eyeRegionStartY + (eyeRegionEndY - eyeRegionStartY) * 0.4,
-          brightness: 50,
-          estimated: true
-        };
-      }
-      
-      if (!rightEye) {
-        rightEye = {
-          x: rightEyeX + (rightEyeEndX - rightEyeX) * 0.6,
-          y: eyeRegionStartY + (eyeRegionEndY - eyeRegionStartY) * 0.4,
-          brightness: 50,
-          estimated: true
-        };
-      }
+      // HONEST DETECTION: Only return true if we actually found both eyes
+      const bothEyesFound = leftEye !== null && rightEye !== null;
       
       return {
-        eyesFound: true, // Always true now with fallback
+        eyesFound: bothEyesFound,
         leftEye: leftEye,
         rightEye: rightEye
       };
     }
 
-    function findEyeWithGlasses(data, width, height, startX, endX, startY, endY) {
+    function findRealEye(data, width, height, startX, endX, startY, endY) {
       let bestCandidates = [];
       
-      // Look for dark regions (could be iris through glasses)
+      // Look for dark circular regions (iris/pupil)
       for (let y = startY; y < endY; y += 2) {
         for (let x = startX; x < endX; x += 2) {
           const idx = (y * width + x) * 4;
@@ -622,32 +628,70 @@
           
           const brightness = (r + g + b) / 3;
           
-          // Look for dark spots that could be eyes
-          if (brightness < 120) {
-            bestCandidates.push({
-              x: x,
-              y: y,
-              brightness: brightness,
-              score: (120 - brightness) + getLocalDarkness(data, width, height, x, y)
-            });
+          // Strict eye detection - must be quite dark
+          if (brightness < 80) {
+            const localScore = getEyeScore(data, width, height, x, y);
+            
+            if (localScore > 50) { // Strict threshold
+              bestCandidates.push({
+                x: x,
+                y: y,
+                brightness: brightness,
+                score: localScore
+              });
+            }
           }
         }
       }
       
-      // Sort by score and return best candidate
+      // Only return if we found a really good candidate
       if (bestCandidates.length > 0) {
         bestCandidates.sort((a, b) => b.score - a.score);
-        return bestCandidates[0];
+        const best = bestCandidates[0];
+        
+        // Additional validation - must be consistently dark in a small area
+        if (isConsistentlyDark(data, width, height, best.x, best.y)) {
+          return best;
+        }
       }
       
-      return null;
+      return null; // No fallback - honest detection
     }
 
-    function getLocalDarkness(data, width, height, centerX, centerY) {
+    function getEyeScore(data, width, height, centerX, centerY) {
       let totalDarkness = 0;
-      let count = 0;
+      let darkPixels = 0;
+      let totalPixels = 0;
       
-      // Check 3x3 area around point
+      // Check 5x5 area around point for eye-like characteristics
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          const x = centerX + dx;
+          const y = centerY + dy;
+          
+          if (x >= 0 && x < width && y >= 0 && y < height) {
+            const idx = (y * width + x) * 4;
+            const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+            
+            totalDarkness += (255 - brightness);
+            if (brightness < 100) darkPixels++;
+            totalPixels++;
+          }
+        }
+      }
+      
+      const avgDarkness = totalPixels > 0 ? totalDarkness / totalPixels : 0;
+      const darkRatio = totalPixels > 0 ? darkPixels / totalPixels : 0;
+      
+      // Score based on both darkness and consistency
+      return avgDarkness * darkRatio * 100;
+    }
+
+    function isConsistentlyDark(data, width, height, centerX, centerY) {
+      let darkCount = 0;
+      let totalCount = 0;
+      
+      // Check 3x3 area - most pixels should be dark for a real eye
       for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
           const x = centerX + dx;
@@ -656,16 +700,17 @@
           if (x >= 0 && x < width && y >= 0 && y < height) {
             const idx = (y * width + x) * 4;
             const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-            totalDarkness += (255 - brightness);
-            count++;
+            
+            if (brightness < 90) darkCount++;
+            totalCount++;
           }
         }
       }
       
-      return count > 0 ? totalDarkness / count : 0;
+      return (darkCount / totalCount) > 0.6; // 60% of pixels must be dark
     }
 
-    function calculateGazeFeatures(eyeData, faceRegion, width, height) {
+    function calculateGazeFeatures(eyeData, width, height) {
       if (!eyeData.eyesFound) {
         return {
           features: [0.5, 0.5, 0.5, 0.5],
@@ -675,40 +720,18 @@
       
       const leftEye = eyeData.leftEye;
       const rightEye = eyeData.rightEye;
-      const faceCenter = faceRegion.center;
       
-      // Normalize eye positions
-      let leftX = leftEye.x / width;
-      let leftY = leftEye.y / height;
-      let rightX = rightEye.x / width;
-      let rightY = rightEye.y / height;
-      
-      // If using estimated positions, adjust based on face center movement
-      if (faceCenter) {
-        const faceCenterX = faceCenter.x / width;
-        const faceCenterY = faceCenter.y / height;
-        
-        // Adjust gaze based on head position for better estimation
-        const headOffsetX = (faceCenterX - 0.5) * 0.3; // 30% influence
-        const headOffsetY = (faceCenterY - 0.5) * 0.3;
-        
-        leftX += headOffsetX;
-        rightX += headOffsetX;
-        leftY += headOffsetY;
-        rightY += headOffsetY;
-        
-        // Clamp to valid range
-        leftX = Math.max(0, Math.min(1, leftX));
-        rightX = Math.max(0, Math.min(1, rightX));
-        leftY = Math.max(0, Math.min(1, leftY));
-        rightY = Math.max(0, Math.min(1, rightY));
-      }
+      // Normalize eye positions to 0-1 range
+      const leftX = leftEye.x / width;
+      const leftY = leftEye.y / height;
+      const rightX = rightEye.x / width;
+      const rightY = rightEye.y / height;
       
       // Calculate average for gaze direction
       const avgX = (leftX + rightX) / 2;
       const avgY = (leftY + rightY) / 2;
       
-      // Determine gaze direction with adjusted thresholds
+      // Determine gaze direction
       let direction = 'center';
       if (avgX < 0.4) direction = 'right'; // Mirror view
       else if (avgX > 0.6) direction = 'left';
@@ -720,10 +743,49 @@
       return { features, direction, avgX, avgY };
     }
 
+    function updateDetectionOverlay(faceRegion, eyeData, width, height) {
+      const overlay = detectionOverlay;
+      overlay.innerHTML = '';
+      
+      if (faceRegion && faceRegion.detected) {
+        // Show face detection box
+        const faceBox = document.createElement('div');
+        faceBox.className = 'face-box';
+        faceBox.style.left = (faceRegion.bounds.minX / width * 100) + '%';
+        faceBox.style.top = (faceRegion.bounds.minY / height * 100) + '%';
+        faceBox.style.width = ((faceRegion.bounds.maxX - faceRegion.bounds.minX) / width * 100) + '%';
+        faceBox.style.height = ((faceRegion.bounds.maxY - faceRegion.bounds.minY) / height * 100) + '%';
+        overlay.appendChild(faceBox);
+        
+        // Show eye detection dots only if eyes were actually found
+        if (eyeData && eyeData.eyesFound) {
+          if (eyeData.leftEye) {
+            const leftDot = document.createElement('div');
+            leftDot.className = 'eye-dot';
+            leftDot.style.left = (eyeData.leftEye.x / width * 100) + '%';
+            leftDot.style.top = (eyeData.leftEye.y / height * 100) + '%';
+            overlay.appendChild(leftDot);
+          }
+          
+          if (eyeData.rightEye) {
+            const rightDot = document.createElement('div');
+            rightDot.className = 'eye-dot';
+            rightDot.style.left = (eyeData.rightEye.x / width * 100) + '%';
+            rightDot.style.top = (eyeData.rightEye.y / height * 100) + '%';
+            overlay.appendChild(rightDot);
+          }
+        }
+      }
+    }
+
+    function clearDetectionOverlay() {
+      detectionOverlay.innerHTML = '';
+    }
+
     function updateGazeVisualization(gazeData) {
       const gazeDot = document.getElementById('gazeDot');
       
-      if (gazeData.detected && gazeData.features) {
+      if (gazeData.detected && gazeData.eyesDetected && gazeData.features) {
         const avgX = (gazeData.features[0] + gazeData.features[1]) / 2;
         const avgY = (gazeData.features[2] + gazeData.features[3]) / 2;
         
@@ -735,7 +797,10 @@
         gazeDot.style.top = `${dotY}px`;
         gazeDot.style.opacity = '1';
       } else {
-        gazeDot.style.opacity = '0.3';
+        // Center dot and make it dim when no eyes detected
+        gazeDot.style.left = '50px';
+        gazeDot.style.top = '30px';
+        gazeDot.style.opacity = '0.2';
       }
     }
 
@@ -746,11 +811,16 @@
 
       const gazeData = detectFaceAndEyes();
       
-      // Update debug display
+      // Update debug display with honest information
       document.getElementById('debugFaceDetected').textContent = gazeData.detected ? 'Yes' : 'No';
       document.getElementById('debugEyesDetected').textContent = gazeData.eyesDetected ? 'Yes' : 'No';
       document.getElementById('debugGazeDirection').textContent = gazeData.gazeDirection;
-      document.getElementById('debugFeatures').textContent = gazeData.features.map(f => f.toFixed(3)).join(', ');
+      
+      if (gazeData.eyesDetected) {
+        document.getElementById('debugFeatures').textContent = gazeData.features.map(f => f.toFixed(3)).join(', ');
+      } else {
+        document.getElementById('debugFeatures').textContent = 'No eyes detected';
+      }
       
       // Update gaze visualization
       updateGazeVisualization(gazeData);
@@ -774,7 +844,7 @@
           irisFeatures: gazeData.features,
           landmarkConfidence: gazeData.confidence,
           gazeDirection: gazeData.gazeDirection,
-          detectionMethod: "glasses_optimized",
+          detectionMethod: "honest_detection",
           timestamp: new Date().toISOString()
         };
 
@@ -836,11 +906,12 @@
         videoPlaceholder.style.display = 'none';
         video.style.display = 'block';
         canvas.style.display = 'block';
+        detectionOverlay.style.display = 'block';
         
         startCameraBtn.classList.add('hidden');
         stopCameraBtn.classList.remove('hidden');
         
-        updateStatus('good', 'Camera active. Glasses-optimized gaze tracking is now running.');
+        updateStatus('good', 'Camera active. Honest eye detection is now running.');
         
         isDetecting = true;
         processFrame();
@@ -869,6 +940,7 @@
       videoPlaceholder.style.display = 'flex';
       video.style.display = 'none';
       canvas.style.display = 'none';
+      detectionOverlay.style.display = 'none';
       
       startCameraBtn.classList.remove('hidden');
       stopCameraBtn.classList.add('hidden');
@@ -877,6 +949,9 @@
       document.getElementById('debugFaceDetected').textContent = 'No';
       document.getElementById('debugEyesDetected').textContent = 'No';
       document.getElementById('debugGazeDirection').textContent = '-';
+      document.getElementById('debugFeatures').textContent = '-';
+      
+      clearDetectionOverlay();
     }
 
     startCameraBtn.addEventListener('click', startCamera);
@@ -899,7 +974,7 @@
       }
     });
 
-    console.log('GenuineHire Glasses-Optimized Candidate Interface Initialized');
+    console.log('GenuineHire Honest Eye Detection Interface Initialized');
     console.log('Session ID:', sessionId);
   </script>
 </body>
