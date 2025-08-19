@@ -1,0 +1,1528 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenuineHire - Interviewer Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --secondary-color: #64748b;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --background-color: #f8fafc;
+      --card-background: #ffffff;
+      --border-color: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-primary);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    /* Header */
+    .header {
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .header p {
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #f0f9ff;
+      border: 1px solid #0ea5e9;
+      border-radius: var(--radius-md);
+      color: #0369a1;
+      font-weight: 500;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success-color);
+      border-radius: 50%;
+    }
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .video-grid.two-columns {
+      grid-template-columns: 1fr 1fr;
+    }
+    /* Cards */
+    .card {
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .card-icon.primary {
+      background: #eff6ff;
+      color: var(--primary-color);
+    }
+    .card-icon.success {
+      background: #f0fdf4;
+      color: var(--success-color);
+    }
+    .card-icon.warning {
+      background: #fffbeb;
+      color: var(--warning-color);
+    }
+    .card-body {
+      padding: 24px;
+    }
+    /* Video Section */
+    .video-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #000;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: var(--text-muted);
+      gap: 12px;
+    }
+    .video-placeholder-icon {
+      font-size: 48px;
+      opacity: 0.5;
+    }
+    .video-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--background-color);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .connection-dot.connected {
+      background: var(--success-color);
+    }
+    .connection-dot.waiting {
+      background: var(--warning-color);
+      animation: pulse 2s infinite;
+    }
+    .connection-dot.error {
+      background: var(--danger-color);
+    }
+    /* Face Detection Display for Candidate */
+    .candidate-detection-panel {
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      margin-bottom: 16px;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .detection-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .detection-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.1);
+      border-radius: var(--radius-sm);
+    }
+    .detection-label {
+      color: #94a3b8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .detection-value {
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .detection-value.good { color: var(--success-color); }
+    .detection-value.warning { color: var(--warning-color); }
+    .detection-value.error { color: var(--danger-color); }
+    .detection-value.info { color: #60a5fa; }
+    .candidate-features {
+      background: rgba(255,255,255,0.05);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      word-break: break-all;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 44px;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+    .btn-success {
+      background: var(--success-color);
+      color: white;
+    }
+    .btn-success:hover:not(:disabled) {
+      background: #059669;
+    }
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: #dc2626;
+    }
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border-color);
+      color: var(--text-secondary);
+    }
+    .btn-outline:hover:not(:disabled) {
+      background: var(--background-color);
+      border-color: var(--text-muted);
+    }
+    .btn-full {
+      width: 100%;
+    }
+    /* Control Panel */
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .control-section {
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .info-value {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      font-size: 13px;
+    }
+    /* Candidate Link Section */
+    .link-section {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .link-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .link-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      background: white;
+      margin-bottom: 12px;
+    }
+    .link-actions {
+      display: flex;
+      gap: 8px;
+    }
+    /* Model Status */
+    .model-status {
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .model-status.loading {
+      background: #fffbeb;
+      color: #92400e;
+      border: 1px solid #fbbf24;
+    }
+    .model-status.ready {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #22c55e;
+    }
+    .model-status.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #f87171;
+    }
+    /* Gaze Monitoring */
+    .gaze-display {
+      text-align: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #0ea5e9;
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+    }
+    .gaze-current {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    .gaze-status {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--success-color);
+      margin: 16px 0;
+    }
+    .gaze-status.suspicious {
+      color: var(--danger-color);
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--border-color);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin: 16px 0;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success-color), var(--warning-color), var(--danger-color));
+      transition: width 0.3s ease;
+      border-radius: var(--radius-sm);
+    }
+    .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    /* Settings */
+    .setting-item {
+      margin-bottom: 16px;
+    }
+    .setting-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .slider {
+      width: 100%;
+      height: 6px;
+      border-radius: var(--radius-sm);
+      background: var(--border-color);
+      outline: none;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+    }
+    .slider-value {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    /* Analytics */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .metric-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+    }
+    .metric-label {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    /* Activity Log */
+    .activity-log {
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      gap: 12px;
+    }
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    .log-time {
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .log-message {
+      flex: 1;
+    }
+    .log-normal { color: var(--success-color); }
+    .log-warning { color: var(--warning-color); }
+    .log-alert { color: var(--danger-color); }
+    .log-info { color: var(--primary-color); }
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .video-grid.two-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 16px;
+      }
+      
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .header h1 {
+        font-size: 24px;
+      }
+      
+      .link-actions {
+        flex-direction: column;
+      }
+      
+      .analytics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 480px) {
+      .analytics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* Hidden class */
+    .hidden {
+      display: none !important;
+    }
+    /* --- tiny toast --- */
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #111827;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: var(--shadow-lg);
+      opacity: 0.95;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <div class="header-title">
+          <div class="header-icon">🎯</div>
+          <div>
+            <h1>Interviewer Dashboard</h1>
+            <p>Professional interview monitoring with AI-powered gaze detection</p>
+          </div>
+        </div>
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span id="systemStatus">System Ready</span>
+        </div>
+      </div>
+    </div>
+    <!-- Main Content -->
+    <div class="main-grid">
+      <!-- Video Section -->
+      <div class="video-grid" id="videoGrid">
+        <!-- Interviewer Video -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon primary">📹</div>
+              <div>
+                <div>Your Camera</div>
+                <div style="font-size: 12px; color: var(--text-muted); font-weight: 400;">Interviewer View</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="video-container">
+              <video id="interviewerVideo" autoplay muted playsinline style="display: none;"></video>
+              <div id="interviewerPlaceholder" class="video-placeholder">
+                <div class="video-placeholder-icon">📹</div>
+                <div>Click "Start Camera" to begin</div>
+              </div>
+            </div>
+            <div class="video-status">
+              <div class="connection-status">
+                <div class="connection-dot" id="interviewerDot"></div>
+                <span>Camera Off</span>
+              </div>
+            </div>
+            <button id="startInterviewerCamera" class="btn btn-success btn-full">
+              <span>📹</span>
+              Start My Camera
+            </button>
+          </div>
+        </div>
+        <!-- Candidate Monitoring (Hidden initially) -->
+        <div class="card hidden" id="candidateMonitoringCard">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-icon success">👤</div>
+              <div>
+                <div>Candidate Monitoring</div>
+                <div style="font-size: 12px; color: var(--text-muted); font-weight: 400;">Real-time gaze detection</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="video-container">
+              <div id="candidatePlaceholder" class="video-placeholder">
+                <div class="video-placeholder-icon">⏳</div>
+                <div>Waiting for candidate...</div>
+              </div>
+            </div>
+            <!-- Real-time Detection Display -->
+            <div id="candidateDetectionPanel" class="candidate-detection-panel" style="display: none;">
+              <div class="detection-grid">
+                <div class="detection-item">
+                  <span class="detection-label">Backend</span>
+                  <span class="detection-value" id="backendStatus">Connecting...</span>
+                </div>
+                <div class="detection-item">
+                  <span class="detection-label">Face</span>
+                  <span class="detection-value" id="faceStatus">Not Detected</span>
+                </div>
+                <div class="detection-item">
+                  <span class="detection-label">Gaze</span>
+                  <span class="detection-value" id="gazeStatus">--</span>
+                </div>
+                <div class="detection-item">
+                  <span class="detection-label">Confidence</span>
+                  <span class="detection-value" id="confidenceStatus">--</span>
+                </div>
+                <div class="detection-item">
+                  <span class="detection-label">Method</span>
+                  <span class="detection-value" id="detectionMethod">--</span>
+                </div>
+                <div class="detection-item">
+                  <span class="detection-label">Quality</span>
+                  <span class="detection-value" id="qualityStatus">--</span>
+                </div>
+              </div>
+              
+              <div class="candidate-features">
+                <strong>Features:</strong> <span id="featuresDisplay">--</span><br>
+                <strong>Predictions:</strong> <span id="predictionCount">0</span> | 
+                <strong>Data Age:</strong> <span id="dataAge">--</span>
+              </div>
+            </div>
+            <div class="video-status">
+              <div class="connection-status">
+                <div class="connection-dot waiting" id="candidateDot"></div>
+                <span id="candidateStatusText">Waiting for candidate...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <!-- Session Control -->
+        <div class="control-section">
+          <div class="section-title">
+            <span>🎯</span>
+            Session Control
+          </div>
+          <div class="info-grid">
+            <div class="info-row">
+              <span class="info-label">Session ID</span>
+              <span class="info-value" id="sessionId">Loading...</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Status</span>
+              <span class="info-value" style="color: var(--success-color);" id="sessionStatus">Ready</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Started</span>
+              <span class="info-value" id="startTime">-</span>
+            </div>
+          </div>
+          <div class="link-section">
+            <div class="link-label">📋 Candidate Interview Link</div>
+            <input type="text" class="link-input" id="candidateUrl" readonly>
+            <div class="link-actions">
+              <button class="btn btn-outline" onclick="copyLink()" style="flex: 1;">
+                📋 Copy Link
+              </button>
+              <a id="candidateLink" href="#" target="_blank" class="btn btn-primary" style="flex: 1;">
+                🔗 Open
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- AI Model Status -->
+        <div class="control-section">
+          <div class="section-title">
+            <span>🤖</span>
+            AI Model Status
+          </div>
+          <div class="model-status loading" id="modelStatus">
+            ⏳ Checking backend connection...
+          </div>
+        </div>
+        <!-- Gaze Monitoring (Hidden initially) -->
+        <div class="control-section hidden" id="gazeMonitoringSection">
+          <div class="section-title">
+            <span>👁️</span>
+            Real-time Gaze Monitoring
+          </div>
+          <div class="gaze-display">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Current Detection</div>
+            <div class="gaze-current" id="currentGaze">Ready to monitor</div>
+            
+            <div style="font-size: 14px; color: var(--text-secondary); margin: 12px 0 8px;">Attention Status</div>
+            <div class="gaze-status" id="sustainedGaze">Waiting for candidate...</div>
+            
+            <div class="progress-bar">
+              <div class="progress-fill" id="timerFill" style="width: 0%"></div>
+              <div class="progress-text" id="timerText">0.0s</div>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <button id="startMonitoring" class="btn btn-success" style="flex: 1;">
+              🚀 Start Monitoring
+            </button>
+            <button id="stopMonitoring" class="btn btn-danger hidden" style="flex: 1;">
+              ⏹️ Stop
+            </button>
+            <button id="explainLast" class="btn btn-primary">🧠 Explain Last</button>
+          </div>
+          <button id="resetSession" class="btn btn-outline btn-full">
+            🔄 Reset Session
+          </button>
+        </div>
+        <!-- Detection Settings (Hidden initially) -->
+        <div class="control-section hidden" id="settingsSection">
+          <div class="section-title">
+            <span>⚙️</span>
+            Detection Settings
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">Suspicious Threshold</label>
+            <input type="range" class="slider" id="suspiciousThreshold" min="3" max="10" step="0.5" value="5">
+            <div class="slider-value" id="thresholdValue">5.0s</div>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">Update Rate</label>
+            <input type="range" class="slider" id="updateRate" min="100" max="1000" step="100" value="500">
+            <div class="slider-value" id="updateRateValue">500ms</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="explainPanel" class="candidate-features" style="margin-top:10px;">
+  <strong>Top Reasons:</strong>
+  <ul id="reasonsList" style="margin-top:6px;"></ul>
+  <div id="rawExplain" style="margin-top:8px;font-size:11px;color:#64748b;"></div>
+</div>
+    <!-- Analytics Section (Hidden initially) -->
+    <div class="card hidden" id="analyticsSection">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-icon primary">📊</div>
+          Session Analytics
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="analytics-grid">
+          <div class="metric-card">
+            <div class="metric-value" id="sessionDuration">00:00</div>
+            <div class="metric-label">Duration</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="gazeEvents">0</div>
+            <div class="metric-label">Gaze Events</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="suspiciousCount">0</div>
+            <div class="metric-label">Alerts</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="attentionScore">100%</div>
+            <div class="metric-label">Attention Score</div>
+          </div>
+        </div>
+        <div class="activity-log" id="activityLog">
+          <div class="log-entry">
+            <span class="log-time">[--:--:--]</span>
+            <span class="log-message log-info">Dashboard initialized - waiting for candidate...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // tiny toast helper
+    function toast(msg) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2500);
+    }
+    // Global variables
+    let interviewerVideo = null;
+    let interviewerStream = null;
+    let isMonitoring = false;
+    let isInterviewerCameraOn = false;
+    let candidateConnected = false;
+    let backendConnected = false;
+    let pollingInterval = null;
+    
+    // Session management
+    const sessionId = generateSessionId();
+    let sessionStartTime = new Date();
+    let gazeEventCount = 0;
+    let suspiciousAlertCount = 0;
+    
+    // Gaze tracking variables
+    let currentDirection = 'NONE';
+    let sustainedDirection = 'NONE';
+    let directionStartTime = null;
+    let directionDuration = 0;
+    let suspiciousThreshold = 5.0;
+    let updateRate = 500;
+    // UI Elements
+    const startInterviewerCameraBtn = document.getElementById('startInterviewerCamera');
+    const startMonitoringBtn = document.getElementById('startMonitoring');
+    const stopMonitoringBtn = document.getElementById('stopMonitoring');
+    const resetSessionBtn = document.getElementById('resetSession');
+    const interviewerVideoEl = document.getElementById('interviewerVideo');
+    const interviewerPlaceholder = document.getElementById('interviewerPlaceholder');
+    const interviewerDot = document.getElementById('interviewerDot');
+    const videoGrid = document.getElementById('videoGrid');
+    const candidateMonitoringCard = document.getElementById('candidateMonitoringCard');
+    const gazeMonitoringSection = document.getElementById('gazeMonitoringSection');
+    const settingsSection = document.getElementById('settingsSection');
+    const analyticsSection = document.getElementById('analyticsSection');
+    const candidateDetectionPanel = document.getElementById('candidateDetectionPanel');
+    const backendStatus = document.getElementById('backendStatus');
+    const faceStatus = document.getElementById('faceStatus');
+    const gazeStatus = document.getElementById('gazeStatus');
+    const confidenceStatus = document.getElementById('confidenceStatus');
+    const detectionMethod = document.getElementById('detectionMethod');
+    const qualityStatus = document.getElementById('qualityStatus');
+    const featuresDisplay = document.getElementById('featuresDisplay');
+    const predictionCount = document.getElementById('predictionCount');
+    const dataAge = document.getElementById('dataAge');
+    const candidateStatusText = document.getElementById('candidateStatusText');
+    const systemStatus = document.getElementById('systemStatus');
+    // Generate unique session ID
+    function generateSessionId() {
+      return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    // Initialize dashboard
+    function initializeDashboard() {
+      document.getElementById("sessionId").textContent = sessionId;
+      document.getElementById("startTime").textContent = sessionStartTime.toLocaleTimeString();
+      // Generate candidate URL
+      const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+      const candidateUrl = `${baseUrl}/candidate.html?sessionId=${sessionId}`;
+      const candidateLink = document.getElementById("candidateLink");
+      const candidateUrlDiv = document.getElementById("candidateUrl");
+      
+      candidateLink.href = candidateUrl;
+      candidateUrlDiv.value = candidateUrl;
+      
+      addLogEntry('Candidate link generated and ready', 'info');
+      addLogEntry(`Session ID: ${sessionId}`, 'info');
+      
+      // Check backend connection
+      checkBackendConnection();
+    }
+    // Check backend connection and model status
+    async function checkBackendConnection() {
+      try {
+        addLogEntry('Checking backend connection...', 'info');
+        const response = await fetch('/api/health');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        backendConnected = true;
+        
+        addLogEntry('✅ Backend connected successfully', 'normal');
+        addLogEntry(`Model loaded: ${data.model_loaded ? 'Yes' : 'No'}`, data.model_loaded ? 'normal' : 'warning');
+        
+        if (data.model_type) {
+          addLogEntry(`Model type: ${data.model_type}`, 'info');
+        }
+        
+        // Update UI
+        const modelStatusEl = document.getElementById('modelStatus');
+        if (data.model_loaded) {
+          modelStatusEl.className = 'model-status ready';
+          modelStatusEl.innerHTML = `✅ AI Model Ready<br><small>${data.model_type || 'Loaded'}</small>`;
+          systemStatus.textContent = 'AI Ready';
+        } else {
+          modelStatusEl.className = 'model-status error';
+          modelStatusEl.innerHTML = '❌ AI Model Not Loaded';
+          systemStatus.textContent = 'Model Error';
+        }
+        
+        backendStatus.textContent = 'Connected';
+        backendStatus.className = 'detection-value good';
+        
+      } catch (error) {
+        backendConnected = false;
+        addLogEntry(`❌ Backend connection failed: ${error.message}`, 'alert');
+        
+        const modelStatusEl = document.getElementById('modelStatus');
+        modelStatusEl.className = 'model-status error';
+        modelStatusEl.innerHTML = '❌ Backend Connection Failed';
+        
+        backendStatus.textContent = 'Disconnected';
+        backendStatus.className = 'detection-value error';
+        systemStatus.textContent = 'Backend Error';
+      }
+    }
+    // Sliders
+    const suspiciousSlider = document.getElementById('suspiciousThreshold');
+    const updateRateSlider = document.getElementById('updateRate');
+    const thresholdValueDiv = document.getElementById('thresholdValue');
+    const updateRateValueDiv = document.getElementById('updateRateValue');
+    
+    // Event listeners for sliders
+    suspiciousSlider?.addEventListener('input', (e) => {
+      suspiciousThreshold = parseFloat(e.target.value);
+      thresholdValueDiv.textContent = `${suspiciousThreshold}s`;
+      addLogEntry(`Suspicious threshold updated: ${suspiciousThreshold}s`, 'info');
+    });
+    
+    updateRateSlider?.addEventListener('input', (e) => {
+      updateRate = parseInt(e.target.value);
+      updateRateValueDiv.textContent = `${updateRate}ms`;
+      addLogEntry(`Detection update rate: ${updateRate}ms`, 'info');
+    });
+    async function fetchExplanation() {
+      // guard: backend + candidate data
+      if (!backendConnected) {
+        toast('Backend not connected');
+        addLogEntry('Explain blocked: backend not connected', 'warning');
+        return;
+      }
+      if (!candidateConnected) {
+        toast('No candidate data yet');
+        addLogEntry('Explain blocked: no candidate data', 'warning');
+        return;
+      }
+      try {
+        const res = await fetch(`/api/explain_last?sessionId=${sessionId}`);
+        if (!res.ok) {
+          addLogEntry(`Explain failed: HTTP ${res.status}`, 'alert');
+          toast(`Explain failed (${res.status})`);
+          return;
+        }
+        const data = await res.json();
+        renderExplanation(data);
+        addLogEntry('SHAP + LIME explanation generated for last prediction', 'normal');
+        toast('Explanation updated');
+      } catch (e) {
+        addLogEntry(`Explain error: ${e.message}`, 'alert');
+        toast('Explain error');
+      }
+    }
+    function renderExplanation(data) {
+      const reasonsUl = document.getElementById('reasonsList');
+      const rawDiv = document.getElementById('rawExplain');
+      reasonsUl.innerHTML = '';
+      if (data.top_reasons && data.top_reasons.length) {
+        data.top_reasons.forEach(r => {
+          const li = document.createElement('li');
+          const sign = r.impact >= 0 ? '+' : '−';
+          li.textContent = `${r.feature} ${sign}${Math.abs(r.impact).toFixed(3)} (SHAP)`;
+          reasonsUl.appendChild(li);
+        });
+      } else {
+        reasonsUl.innerHTML = '<li>No reasons available yet</li>';
+      }
+      if (data.lime && data.lime.weights) {
+        const top = data.lime.weights.slice(0, 4).map(w => `${w.feature}: ${w.weight.toFixed(3)}`).join(' | ');
+        rawDiv.textContent = `LIME: ${top}`;
+      } else {
+        rawDiv.textContent = '';
+      }
+      if (data.predicted_label) {
+        document.getElementById('gazeStatus').textContent = data.predicted_label.toUpperCase();
+      }
+      if (data.proba && Array.isArray(data.proba)) {
+        const best = Math.max(...data.proba);
+        document.getElementById('confidenceStatus').textContent = `${Math.round(best*100)}%`;
+      }
+    }
+    // wire up the button
+    document.getElementById('explainLast')?.addEventListener('click', fetchExplanation);
+    // Start interviewer camera
+    async function startInterviewerCamera() {
+      try {
+        addLogEntry('Starting interviewer camera...', 'info');
+        
+        const constraints = {
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+          },
+          audio: true
+        };
+        
+        interviewerStream = await navigator.mediaDevices.getUserMedia(constraints);
+        interviewerVideoEl.srcObject = interviewerStream;
+        
+        await new Promise((resolve) => {
+          interviewerVideoEl.onloadedmetadata = () => {
+            interviewerVideoEl.play();
+            resolve();
+          };
+        });
+        
+        isInterviewerCameraOn = true;
+        interviewerPlaceholder.style.display = 'none';
+        interviewerVideoEl.style.display = 'block';
+        interviewerDot.classList.add('connected');
+        interviewerDot.parentElement.innerHTML = '<div class="connection-dot connected"></div><span>Camera Active</span>';
+        
+        startInterviewerCameraBtn.innerHTML = '<span>✅</span>Camera Active';
+        startInterviewerCameraBtn.disabled = true;
+        startInterviewerCameraBtn.classList.remove('btn-success');
+        startInterviewerCameraBtn.classList.add('btn-outline');
+        
+        addLogEntry('Interviewer camera started successfully', 'normal');
+        
+        // Show candidate monitoring section when interviewer camera is ready
+        showCandidateMonitoring();
+        
+      } catch (error) {
+        addLogEntry(`Failed to start interviewer camera: ${error.message}`, 'alert');
+        
+        if (error.name === 'NotAllowedError') {
+          addLogEntry('Camera permission denied - please allow and refresh', 'warning');
+        }
+      }
+    }
+    // Show candidate monitoring section
+    function showCandidateMonitoring() {
+      candidateMonitoringCard.classList.remove('hidden');
+      videoGrid.classList.add('two-columns');
+      gazeMonitoringSection.classList.remove('hidden');
+      settingsSection.classList.remove('hidden');
+      analyticsSection.classList.remove('hidden');
+      
+      addLogEntry('Dashboard ready - candidate can now join', 'info');
+      
+      // Start listening for candidate connections
+      startCandidatePolling();
+    }
+    // Start polling for candidate data
+    function startCandidatePolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+      
+      addLogEntry('Started polling for candidate data...', 'info');
+      
+      // Poll every 1 second to check for candidate data
+      pollingInterval = setInterval(async () => {
+        if (!backendConnected) return;
+        
+        try {
+          const response = await fetch(`/api/gaze_status?sessionId=${sessionId}`);
+          if (!response.ok) return;
+          
+          const data = await response.json();
+          
+          // Check if candidate has joined (has real data)
+          if (data.raw_prediction && data.raw_prediction !== 'no_data' && !candidateConnected) {
+            handleCandidateJoined(data);
+          } else if (candidateConnected && data.raw_prediction === 'no_data') {
+            handleCandidateLeft();
+          }
+          
+          // Always update monitoring display if we have data
+          if (data.raw_prediction && data.raw_prediction !== 'no_data') {
+            updateCandidateMonitoringDisplay(data);
+          }
+          
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      }, 1000); // Poll every second for real-time updates
+    }
+    // Handle candidate joined
+    function handleCandidateJoined(data) {
+      candidateConnected = true;
+      
+      document.getElementById('candidatePlaceholder').innerHTML = `
+        <div class="video-placeholder-icon">✅</div>
+        <div>Candidate Connected</div>
+        <div style="font-size: 12px; opacity: 0.8;">Real-time monitoring active</div>
+      `;
+      
+      document.getElementById('candidateDot').classList.remove('waiting');
+      document.getElementById('candidateDot').classList.add('connected');
+      candidateStatusText.textContent = 'Connected - Real Data';
+      
+      // Show detection panel
+      candidateDetectionPanel.style.display = 'block';
+      
+      addLogEntry('✅ Candidate joined with real MediaPipe detection', 'normal');
+      addLogEntry('Real-time monitoring data now available', 'info');
+      
+      // Update gaze status
+      document.getElementById('sustainedGaze').textContent = 'Ready to Monitor';
+      document.getElementById('currentGaze').textContent = 'Candidate Connected';
+    }
+    // Handle candidate left
+    function handleCandidateLeft() {
+      candidateConnected = false;
+      
+      document.getElementById('candidatePlaceholder').innerHTML = `
+        <div class="video-placeholder-icon">⏳</div>
+        <div>Waiting for candidate...</div>
+      `;
+      
+      document.getElementById('candidateDot').classList.remove('connected');
+      document.getElementById('candidateDot').classList.add('waiting');
+      candidateStatusText.textContent = 'Waiting for candidate...';
+      
+      // Hide detection panel
+      candidateDetectionPanel.style.display = 'none';
+      
+      addLogEntry('❌ Candidate disconnected', 'alert');
+      
+      if (isMonitoring) {
+        stopMonitoring();
+      }
+      
+      // Reset gaze display
+      resetGazeTracking();
+    }
+    // Update candidate monitoring display with real data
+    function updateCandidateMonitoringDisplay(data) {
+      // Update face detection status
+      if (data.face_detected) {
+        faceStatus.textContent = 'Detected';
+        faceStatus.className = 'detection-value good';
+        
+        // Update gaze direction
+        const gazeDirection = data.raw_prediction ? data.raw_prediction.toUpperCase() : 'UNKNOWN';
+        gazeStatus.textContent = gazeDirection;
+        
+        if (gazeDirection === 'CENTER') {
+          gazeStatus.className = 'detection-value good';
+        } else {
+          gazeStatus.className = 'detection-value warning';
+        }
+        
+        // Update confidence - calculate from feature quality and landmark quality
+        const confidence = Math.round(((data.feature_quality || 0) + (data.landmark_quality || 0)) / 2 * 100);
+        confidenceStatus.textContent = `${confidence}%`;
+        confidenceStatus.className = confidence >= 80 ? 'detection-value good' : 
+                                   confidence >= 60 ? 'detection-value warning' : 'detection-value error';
+        
+      } else {
+        // No face detected
+        faceStatus.textContent = 'Not Detected';
+        faceStatus.className = 'detection-value error';
+        gazeStatus.textContent = 'NO FACE';
+        gazeStatus.className = 'detection-value error';
+        confidenceStatus.textContent = '0%';
+        confidenceStatus.className = 'detection-value error';
+      }
+      
+      // Update detection method
+      detectionMethod.textContent = data.detection_method || 'Unknown';
+      detectionMethod.className = data.mediapipe_active ? 'detection-value good' : 'detection-value warning';
+      
+      // Update quality
+      const quality = Math.round((data.feature_quality || 0) * 100);
+      qualityStatus.textContent = `${quality}%`;
+      
+      if (quality >= 80) {
+        qualityStatus.className = 'detection-value good';
+      } else if (quality >= 60) {
+        qualityStatus.className = 'detection-value warning';
+      } else {
+        qualityStatus.className = 'detection-value error';
+      }
+      
+      // Update features display (get from session info if available)
+      if (data.raw_prediction !== 'no_face') {
+        featuresDisplay.textContent = 'Real MediaPipe features';
+        predictionCount.textContent = data.prediction_count || 0;
+      } else {
+        featuresDisplay.textContent = 'No features (no face)';
+      }
+      
+      // Update data age
+      if (data.data_age_seconds !== undefined) {
+        dataAge.textContent = `${data.data_age_seconds.toFixed(1)}s ago`;
+      } else {
+        dataAge.textContent = 'Live';
+      }
+      
+      // Update gaze tracking logic if monitoring is active
+    if (isMonitoring && data.face_detected && data.raw_prediction !== 'no_face') {
+  updateGazeTracking(data.raw_prediction.toUpperCase());
+  document.getElementById('currentGaze').textContent = `Looking ${data.raw_prediction.toUpperCase()}`;
+} else if (isMonitoring && !data.face_detected) {
+  document.getElementById('currentGaze').textContent = 'No Face Detected';
+  const sustainedGazeEl = document.getElementById('sustainedGaze');
+  sustainedGazeEl.textContent = "❌ Zero Attention: No Face Detected";
+  sustainedGazeEl.classList.add('suspicious');
+  resetGazeTimers();
+}
+    }
+    // Start monitoring
+    function startMonitoring() {
+      if (!candidateConnected) {
+        addLogEntry('Cannot start monitoring - no candidate connected', 'warning');
+        toast('Cannot start: waiting for candidate');
+        return;
+      }
+      if (!backendConnected) {
+        addLogEntry('Cannot start monitoring - backend not connected', 'warning');
+        toast('Cannot start: backend not connected');
+        return;
+      }
+      
+      isMonitoring = true;
+      startMonitoringBtn.classList.add('hidden');
+      stopMonitoringBtn.classList.remove('hidden');
+      
+      addLogEntry('🚀 Real-time gaze monitoring started', 'normal');
+      toast('Monitoring started');
+    }
+    // Update gaze tracking logic with real backend data
+    function updateGazeTracking(newDirection) {
+      const now = Date.now();
+      
+      if (newDirection !== currentDirection) {
+        if (!directionStartTime || (now - directionStartTime) > 1000) {
+          addLogEntry(`Real gaze direction: ${newDirection}`, 'info');
+        }
+        
+        currentDirection = newDirection;
+        directionStartTime = now;
+        directionDuration = 0;
+        
+        if (sustainedDirection !== 'CENTER' && newDirection === 'CENTER') {
+          sustainedDirection = 'CENTER';
+          const sustainedGazeEl = document.getElementById('sustainedGaze');
+          sustainedGazeEl.textContent = "✅ Normal Attention";
+          sustainedGazeEl.classList.remove('suspicious');
+          addLogEntry('Candidate returned to normal attention', 'normal');
+        }
+      } else {
+        if (directionStartTime) {
+          directionDuration = (now - directionStartTime) / 1000;
+        }
+      }
+      
+      const progress = Math.min((directionDuration / suspiciousThreshold) * 100, 100);
+      document.getElementById('timerFill').style.width = `${progress}%`;
+      document.getElementById('timerText').textContent = `${directionDuration.toFixed(1)}s`;
+      
+      if (directionDuration >= suspiciousThreshold && currentDirection !== 'CENTER') {
+        if (sustainedDirection !== currentDirection) {
+          sustainedDirection = currentDirection;
+          const sustainedGazeEl = document.getElementById('sustainedGaze');
+          sustainedGazeEl.textContent = `⚠️ SUSPICIOUS: Looking ${currentDirection}`;
+          sustainedGazeEl.classList.add('suspicious');
+          
+          suspiciousAlertCount++;
+          document.getElementById('suspiciousCount').textContent = suspiciousAlertCount;
+          
+          addLogEntry(`🚨 REAL ALERT: Looking ${currentDirection} for ${directionDuration.toFixed(1)}s continuously`, 'alert');
+        }
+      }
+      
+      gazeEventCount++;
+      document.getElementById('gazeEvents').textContent = gazeEventCount;
+      
+      const score = Math.max(0, 100 - (suspiciousAlertCount * 15));
+      document.getElementById('attentionScore').textContent = `${score}%`;
+    }
+    // Reset gaze timers
+    function resetGazeTimers() {
+      currentDirection = 'NONE';
+      directionStartTime = null;
+      directionDuration = 0;
+      document.getElementById('timerFill').style.width = '0%';
+      document.getElementById('timerText').textContent = '0.0s';
+    }
+    // Reset gaze tracking
+    function resetGazeTracking() {
+      resetGazeTimers();
+      document.getElementById('currentGaze').textContent = "Waiting for candidate...";
+      document.getElementById('sustainedGaze').textContent = "Waiting...";
+      document.getElementById('sustainedGaze').classList.remove('suspicious');
+    }
+    // Stop monitoring
+    function stopMonitoring() {
+      isMonitoring = false;
+      startMonitoringBtn.classList.remove('hidden');
+      stopMonitoringBtn.classList.add('hidden');
+      
+      document.getElementById('currentGaze').textContent = "Monitoring Stopped";
+      document.getElementById('sustainedGaze').textContent = "STOPPED";
+      document.getElementById('sustainedGaze').classList.remove('suspicious');
+      resetGazeTimers();
+      
+      addLogEntry('Gaze monitoring stopped', 'info');
+      toast('Monitoring stopped');
+    }
+    // Reset session
+    function resetSession() {
+      gazeEventCount = 0;
+      suspiciousAlertCount = 0;
+      sessionStartTime = new Date();
+      resetGazeTracking();
+      
+      document.getElementById('gazeEvents').textContent = "0";
+      document.getElementById('suspiciousCount').textContent = "0";
+      document.getElementById('attentionScore').textContent = "100%";
+      document.getElementById('startTime').textContent = sessionStartTime.toLocaleTimeString();
+      
+      const activityLog = document.getElementById('activityLog');
+      activityLog.innerHTML = `
+        <div class="log-entry">
+          <span class="log-time">[${new Date().toTimeString().split(' ')[0]}]</span>
+          <span class="log-message log-info">Session reset - ready for new interview</span>
+        </div>
+      `;
+      
+      addLogEntry('Session data reset', 'info');
+      toast('Session reset');
+    }
+    // Copy link functionality
+    function copyLink() {
+      const candidateUrl = document.getElementById('candidateUrl').value;
+      navigator.clipboard.writeText(candidateUrl).then(() => {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        btn.style.background = 'var(--success-color)';
+        btn.style.color = 'white';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 2000);
+        addLogEntry('Candidate link copied to clipboard', 'info');
+        toast('Link copied');
+      }).catch(() => {
+        addLogEntry('Failed to copy link to clipboard', 'alert');
+        toast('Copy failed');
+      });
+    }
+    // Add log entry
+    function addLogEntry(message, type = 'info') {
+      const log = document.getElementById('activityLog');
+      if (!log) return;
+      
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+        <span class="log-time">[${timeStr}]</span>
+        <span class="log-message log-${type}">${message}</span>
+      `;
+      
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+      
+      while (log.children.length > 50) {
+        log.removeChild(log.firstChild);
+      }
+    }
+    // Update session timer
+    function updateSessionTimer() {
+      const now = new Date();
+      const diff = Math.floor((now - sessionStartTime) / 1000);
+      const minutes = Math.floor(diff / 60);
+      const seconds = diff % 60;
+      const durationEl = document.getElementById('sessionDuration');
+      if (durationEl) {
+        durationEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+    }
+    // Event listeners
+    startInterviewerCameraBtn?.addEventListener('click', startInterviewerCamera);
+    startMonitoringBtn?.addEventListener('click', startMonitoring);
+    stopMonitoringBtn?.addEventListener('click', stopMonitoring);
+    resetSessionBtn?.addEventListener('click', resetSession);
+    // Start timers
+    setInterval(updateSessionTimer, 1000);
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeDashboard();
+      updateSessionTimer();
+    });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeDashboard();
+        updateSessionTimer();
+      });
+    } else {
+      initializeDashboard();
+      updateSessionTimer();
+    }
+    // Check camera support
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      addLogEntry("Camera not supported in this browser", 'alert');
+      if (startInterviewerCameraBtn) {
+        startInterviewerCameraBtn.disabled = true;
+        startInterviewerCameraBtn.innerHTML = "❌ Not Supported";
+      }
+    }
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+      if (interviewerStream) {
+        interviewerStream.getTracks().forEach(track => track.stop());
+      }
+    });
+    console.log('GenuineHire Interviewer Dashboard Initialized');
+    console.log('Session ID:', sessionId);
+    console.log('Real-time Candidate Monitoring: ACTIVE');
+  </script>
+</body>
+</html>
