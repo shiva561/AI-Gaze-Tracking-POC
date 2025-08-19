@@ -1,0 +1,37 @@
+{
+    "Random Forest": {
+        "cv_mean": 1.0,
+        "cv_std": 0.0,
+        "test_accuracy": 1.0
+    },
+    "Gradient Boosting": {
+        "cv_mean": 1.0,
+        "cv_std": 0.0,
+        "test_accuracy": 1.0
+    },
+    "Extra Trees": {
+        "cv_mean": 1.0,
+        "cv_std": 0.0,
+        "test_accuracy": 1.0
+    },
+    "SVM": {
+        "cv_mean": 1.0,
+        "cv_std": 0.0,
+        "test_accuracy": 1.0
+    },
+    "Neural Network": {
+        "cv_mean": 1.0,
+        "cv_std": 0.0,
+        "test_accuracy": 1.0
+    },
+    "Scaled Random Forest": {
+        "cv_mean": 1.0,
+        "cv_std": 0.0,
+        "test_accuracy": 1.0
+    },
+    "Scaled Gradient Boosting": {
+        "cv_mean": 1.0,
+        "cv_std": 0.0,
+        "test_accuracy": 1.0
+    }
+}

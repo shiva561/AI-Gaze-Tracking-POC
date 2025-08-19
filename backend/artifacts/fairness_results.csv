@@ -1,0 +1,11 @@
+Gender,Actual,center,down,left,right,up
+Female,center,7,0,0,0,0
+Female,down,0,4,0,0,0
+Female,left,0,0,9,0,0
+Female,right,0,0,0,6,0
+Female,up,0,0,0,0,3
+Male,center,3,0,0,0,0
+Male,down,0,6,0,0,0
+Male,left,0,0,1,0,0
+Male,right,0,0,0,4,0
+Male,up,0,0,0,0,7
